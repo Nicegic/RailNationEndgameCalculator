@@ -3,26 +3,26 @@ package cal;
 import entities.Track;
 import entities.trains.Train;
 
-public class TimeCalculator {
+class TimeCalculator {
 
-    Track track;
-    Train train;
-    MovementCal mcal;
+    private Track track;
+    private Train train;
+    private MovementCal mcal;
 
-    public TimeCalculator(){
+    TimeCalculator(){
         mcal = new MovementCal();
     }
 
-    public void setTrack(Track track){
+    void setTrack(Track track){
         this.track = track;
     }
 
-    public void setTrain(Train train){
+    void setTrain(Train train){
         this.train=train;
     }
 
-    public int getTime(int waitTime){
-        int duration=0;
+    int getTime(int waitTime){
+        int duration;
         mcal.setTrack(track);
         mcal.setTrain(train);
         duration=mcal.calculateDurationForTrack();

@@ -8,8 +8,8 @@ import java.util.ArrayList;
 
 public class Player {
 
-    ArrayList<Train> trains;
-    TrainCapacity tcapacity;
+    private ArrayList<Train> trains;
+    private TrainCapacity tcapacity;
 
     public Player(boolean olympDriver){
         trains = new ArrayList<>();
@@ -29,7 +29,7 @@ public class Player {
         }
     }
 
-    public void hasUpgradedOlymps(){
+    private void hasUpgradedOlymps(){
         for(int i=0;i<5;i++){
             Olymp o = new Olymp();
             o.upgradeTrain();

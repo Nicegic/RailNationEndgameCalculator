@@ -5,7 +5,7 @@ import entities.trains.Train;
 
 public class TrainCapacity {
 
-    TimeCalculator tcal;
+    private TimeCalculator tcal;
 
     public TrainCapacity(){
         tcal = new TimeCalculator();

@@ -2,8 +2,8 @@ package entities;
 
 public class CityCap {
 
-    int capacity, currentValue;
-    City city;
+    private int capacity, currentValue;
+    private City city;
 
     public CityCap(City city){
         this.city = city;
@@ -11,7 +11,7 @@ public class CityCap {
 
     public CityCap(City city, int capacity){
         this.city = city;
-        capacity = capacity;
+        this.capacity = capacity;
     }
 
     public void setCurrentValue(int currentValue){

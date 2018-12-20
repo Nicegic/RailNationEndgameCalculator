@@ -14,28 +14,24 @@ import java.awt.event.ActionListener;
 public class Window extends JFrame implements ActionListener {
 
     private JLabel title = new JLabel ("Endspiel Hilfs-Tool"), tplayers = new JLabel("Anzahl Spieler:"), tcapacity=new JLabel("zu erreichende Menge in der Stadt"), tdemand = new JLabel("Verbrauch der Stadt (in %)");
-    private JComboBox<City> cities;
     private JTextField players, citycapacity, demand;
     private JPanel frame = new JPanel();
-    private JTable table;
-    private CapacityOverview overview;
     private GridBagLayout gbl = new GridBagLayout();
     private GridBagConstraints gbc = new GridBagConstraints();
     private JButton calculate = new JButton("berechne");
-    private boolean withTable=false;
-    private JScrollPane container;
+    private JProgressBar progress;
+    private RnTableModel tableModel;
+    private CapacityOverview overview;
 
     public Window(){
-        overview = new CapacityOverview(City.Boston);
+        tableModel = new RnTableModel();
         initWindow();
     }
 
-    private void populateTable(){
-        if(withTable)
-            remove(container);
-        withTable=false;
-        Object [] columns =  {"Betrieb / Zeit zum Vollfahren in min", "0s WZ", "15s WZ", "30s WZ", "45s WZ", "60s WZ", "75s WZ", "90s WZ", "105s WZ", "120s WZ", "135s WZ", "150s WZ", "180s WZ", "210s WZ", "240s WZ", "300s WZ"};
-        table = new JTable(overview.getTableData(), columns){
+    private void initializeTable(){
+        tableModel = new RnTableModel();
+        tableModel.initialize();
+        JTable table = new JTable(tableModel) {
             @Override
             public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
                 Component component = super.prepareRenderer(renderer, row, column);
@@ -58,13 +54,25 @@ public class Window extends JFrame implements ActionListener {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.setAutoCreateRowSorter(true);
         gbc.gridx=0;
-        gbc.gridy=2;
+        gbc.gridy=3;
         gbc.gridwidth=10;
-        container = new JScrollPane(table);
+        JScrollPane container = new JScrollPane(table);
         container.setPreferredSize(new Dimension(800,600));
         frame.add(container,gbc);
         pack();
-        withTable=true;
+    }
+
+    private void populateTable(Object[][] durations, int times){
+        if(tableModel.getRowCount()!=durations.length+1){
+            tableModel.reinitializeForCity(durations.length,times);
+        }
+        for(int i=0;i<durations.length;i++){
+            for(int j=0;j<16;j++){
+                tableModel.setValueAt(durations[i][j],i,j);
+            }
+        }
+        tableModel.fireTableStructureChanged();
+        progress.setValue(progress.getMaximum());
     }
 
     private void initWindow(){
@@ -75,7 +83,7 @@ public class Window extends JFrame implements ActionListener {
         title.setHorizontalAlignment(JLabel.CENTER);
         add(title, BorderLayout.NORTH);
         frame.setLayout(gbl);
-        cities = new JComboBox<>();
+        JComboBox<City> cities = new JComboBox<>();
         cities.addItem(City.Boston);
         gbc.gridx=0;gbc.gridy=0;
         gbc.gridwidth=1;
@@ -101,10 +109,16 @@ public class Window extends JFrame implements ActionListener {
         demand = new JTextField();
         demand.setColumns(4);
         frame.add(demand, gbc);
-        gbc.gridx=3;
+        gbc.gridx=1;
         gbc.gridy=1;
         frame.add(calculate, gbc);
         calculate.addActionListener(this);
+        gbc.gridx=5;
+        progress = new JProgressBar(0,100);
+        progress.setValue(0);
+        progress.setStringPainted(true);
+        frame.add(progress, gbc);
+        initializeTable();
         pack();
         setVisible(true);
     }
@@ -119,12 +133,24 @@ public class Window extends JFrame implements ActionListener {
             }catch(NumberFormatException nfe){
                 System.err.println("Fehler: entweder " + players.getText() + " oder " + citycapacity.getText() + " ist keine gewollte Zahl!");
             }
-            if(iplayers!=0&&icapacity!=0){
-                overview.changeNumberOfPlayers(iplayers);
-                overview.setCitycapacity(icapacity);
-                overview.setCurrentCityDemand(idemand/100.0);
-                populateTable();
+            if(iplayers!=0&&icapacity!=0&&idemand!=0){
+                if(overview!=null&&overview.isAlive()) {
+
+                }else {
+                    overview = new CapacityOverview(City.Boston, this);
+                    progress.setMaximum(overview.numberOfTracks);
+                    overview.enableProgressUpdate(progress);
+                    overview.changeNumberOfPlayers(iplayers);
+                    overview.setCitycapacity(icapacity);
+                    overview.setCurrentCityDemand(idemand / 100.0);
+                    //overview.calculate();
+                    overview.start();
+                }
             }
         }
+    }
+
+    public void calulcationDone(Object [][] durations){
+        populateTable(durations, durations[0].length);
     }
 }

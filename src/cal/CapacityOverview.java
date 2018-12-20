@@ -3,30 +3,63 @@ package cal;
 import entities.City;
 import entities.CityCap;
 import entities.Track;
+import gui.Window;
+
+import javax.swing.*;
 import java.util.ArrayList;
 
 import static entities.City.*;
 import static entities.Orientation.*;
 import static entities.Product.*;
 
-public class CapacityOverview {
+public class CapacityOverview extends Thread{
 
     private CapacityCalculator calculator;
     private ArrayList<Track> tracks = new ArrayList<>();
     private ArrayList<Integer> times;
     private CityCap city;
     private double currentCityDemand = 0.15;
+    public int numberOfTracks=0;
+    private Window window;
+    private JProgressBar progressBar;
+    private int cores;
+    private Object[][] durations;
+    private int[] status;
+    private int threadsFinished = 0, threads = 0, progress=0;
+    private final Object lock= new Object(), lock2 = new Object();
 
-    public CapacityOverview(City city){
+    public CapacityOverview(City city, Window window){
         calculator = new CapacityCalculator();
         times = new ArrayList<>();
         populateCityTracks(city);
         populateWaitTimes();
         this.city = new CityCap(city);
+        this.window = window;
+        cores = Runtime.getRuntime().availableProcessors();
+        status = new int[cores];
     }
 
-    public Object[][] getTableData(){
-        Object[][] durations = new Object[tracks.size()][times.size()+1];
+    public void /*calculate()*/ run(){
+        /*int part = (numberOfTracks/cores);
+        int trow=0, brow=0;
+        durations = new Object[tracks.size()][times.size() + 1];
+        int x;
+        for(x=0;x<cores;x++){
+            trow = x*part;
+            brow = ((x+1)*part)-1;
+            ArrayList<Track> subtracks = new ArrayList<>(tracks.subList(trow, brow));
+            new CalculatorThread(calculator,subtracks, times, city, currentCityDemand, trow, brow, this, x).start();
+        }
+        threads = x;
+        if(brow<numberOfTracks-1){
+            trow = brow+1;
+            brow = numberOfTracks-1;
+            ArrayList<Track> subtracks = new ArrayList<>(tracks.subList(trow, brow));
+            new CalculatorThread(calculator,subtracks, times, city, currentCityDemand, trow, brow, this, x).start();
+            x++;
+            threads = x;
+        }*/
+        durations = new Object[tracks.size()][times.size()+1];
         for(int i=0;i<tracks.size();i++){
             for(int j=0;j<times.size()+1;j++){
                 if(j==0)
@@ -34,8 +67,9 @@ public class CapacityOverview {
                 else
                     durations[i][j]=calculateTimeForFinish(tracks.get(i), times.get(j-1));
             }
+            progressBar.setValue(i);
         }
-        return durations;
+        window.calulcationDone(durations);
     }
 
     public void changeNumberOfPlayers(int number){
@@ -47,6 +81,10 @@ public class CapacityOverview {
     }
 
     public void setCurrentCityDemand(double demand) { currentCityDemand = demand; }
+
+    public void enableProgressUpdate(JProgressBar progressBar){
+        this.progressBar = progressBar;
+    }
 
     private void populateWaitTimes(){
         times.add(0);
@@ -173,11 +211,12 @@ public class CapacityOverview {
             case NewYork:
                 break;
         }
+        numberOfTracks = tracks.size();
     }
 
     private int calculateTimeForFinish(Track track, int waitTime){
         double capacityToDo = city.capacity();
-        double currentCapacity = 0, help;
+        double currentCapacity = 0;
         int rawTime=0;
         while(currentCapacity<capacityToDo){
             currentCapacity+= calculator.getCapacity(track, waitTime, 1);
@@ -185,10 +224,33 @@ public class CapacityOverview {
             if(rawTime%15 == 0){
                 currentCapacity= currentCapacity-(currentCapacity*currentCityDemand);
             }
-            if(rawTime>300){
-                return -1;
+            if(rawTime>240){
+                return 0;
             }
         }
         return rawTime;
+    }
+
+    void addDataToTableData(Object[][] durations, int trow, int brow){
+        synchronized(lock2) {
+            for (int i = trow; i < brow; i++) {
+                System.arraycopy(durations[i - trow], 0, this.durations[i], 0, 16);
+            }
+            threadsFinished++;
+        }
+        if(threadsFinished==threads){
+            window.calulcationDone(durations);
+        }
+    }
+
+    void giveStatusUpdate(int val, int nr){
+        synchronized(lock) {
+            status[nr] = val;
+            progress = 0;
+            for (int stat : status) {
+                progress += stat;
+            }
+            progressBar.setValue(progress);
+        }
     }
 }

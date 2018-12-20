@@ -2,14 +2,13 @@ package entities;
 
 public class Track {
 
-    int length, distance, order;
-    Product product;
-    City city;
-    Orientation orientation;
+    private int distance, order;
+    private Product product;
+    private City city;
+    private Orientation orientation;
 
 
     public Track(int length, Product product, City city, Orientation orientation, int order){
-        this.length=length;
         distance = length*150;
         this.product = product;
         this.city = city;

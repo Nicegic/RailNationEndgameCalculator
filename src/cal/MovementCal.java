@@ -3,20 +3,20 @@ package cal;
 import entities.Track;
 import entities.trains.Train;
 
-public class MovementCal {
+class MovementCal {
 
-    Track track;
-    Train train;
+    private Track track;
+    private Train train;
 
-    public void setTrain(Train train){
+    void setTrain(Train train){
         this.train=train;
     }
 
-    public void setTrack(Track track){
+    void setTrack(Track track){
         this.track=track;
     }
 
-    public int calculateDurationForTrack(){
+    int calculateDurationForTrack(){
         double trainDistance=0;
         int seconds=0;
         train.start();

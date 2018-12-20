@@ -7,9 +7,9 @@ import java.util.ArrayList;
 
 public class CapacityCalculator {
 
-    ArrayList<Player> players;
+    private ArrayList<Player> players;
 
-    public CapacityCalculator(){
+    CapacityCalculator(){
         players = new ArrayList<>();
     }
 
@@ -20,7 +20,7 @@ public class CapacityCalculator {
         }
     }
 
-    public double getCapacity(Track track, int waitTime, int minutes){
+    double getCapacity(Track track, int waitTime, int minutes){
         double capacity =0;
         for(Player p: players){
             capacity+=p.getCapacity(track, waitTime, minutes);
@@ -28,15 +28,15 @@ public class CapacityCalculator {
         return capacity;
     }
 
-    public void addPlayer(Player player){
+    private void addPlayer(Player player){
         players.add(player);
     }
 
-    public void removePlayer(Player player){
+    private void removePlayer(Player player){
         players.remove(player);
     }
 
-    public void setNumberOfPlayers(int number){
+    void setNumberOfPlayers(int number){
         if(number<players.size()){
             while(number<players.size()&&!players.isEmpty()){
                 removePlayer(players.get(players.size()-1));
