@@ -7,5 +7,9 @@ public class Main {
         new Window();
     }
 
-    // TODO: Parallelisierung zur Laufzeitreduktion
+    // TODO: multi-threading for capable computers
+    // TODO: different tabs for different calculation purposes
+    // TODO: file-reading for Import of tracks and factory data
+    // TODO: remove Track and put data and logic into Plant
+
 }

@@ -1,6 +1,6 @@
 package cal;
 
-import entities.CityCap;
+import entities.City;
 import entities.Track;
 
 import java.util.ArrayList;
@@ -10,22 +10,19 @@ public class CalculatorThread extends Thread {
     private CapacityCalculator calculator;
     private ArrayList<Track> tracks;
     private ArrayList<Integer> times;
-    private CityCap city;
-    private double currentCityDemand;
-    private int trow, brow, nr;
-    private CapacityOverview handler;
+    private City city;
+    private int trow, brow;
+    private FinishCal handler;
 
-    public CalculatorThread(CapacityCalculator calculator, ArrayList<Track> tracks, ArrayList<Integer> times, CityCap city, double currentCityDemand, int trow, int brow, CapacityOverview handler, int nr){
+    public CalculatorThread(CapacityCalculator calculator, ArrayList<Track> tracks, ArrayList<Integer> times, City city, int trow, int brow, FinishCal handler){
         super();
         this.calculator = calculator;
         this.tracks = tracks;
         this.times = times;
         this.city = city;
-        this.currentCityDemand = currentCityDemand;
         this.trow = trow;
         this.brow = brow;
         this.handler = handler;
-        this.nr=nr;
     }
 
 
@@ -39,24 +36,18 @@ public class CalculatorThread extends Thread {
                 else
                     durations[i][j] = calculateTimeForFinish(tracks.get(i),times.get(j-1));
             }
-            handler.giveStatusUpdate(i,nr);
+            handler.giveStatusUpdate(i);
         }
         handler.addDataToTableData(durations, trow, brow);
     }
 
     private int calculateTimeForFinish(Track track, int waitTime){
-        double capacityToDo = city.capacity();
-        double currentCapacity = 0, help;
         int rawTime=0;
-        while(currentCapacity<capacityToDo){
-            currentCapacity+= calculator.getCapacity(track, waitTime, 1);
+        while(city.currentValue<city.capacity){
+            city.currentValue = calculator.getCapacity(track, waitTime, 1);
+            city.consume();
+            track.getPlant().recalculate();
             rawTime++;
-            if(rawTime%15 == 0){
-                currentCapacity= currentCapacity-(currentCapacity*currentCityDemand);
-            }
-            if(rawTime>300){
-                return -1;
-            }
         }
         return rawTime;
     }

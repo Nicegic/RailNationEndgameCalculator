@@ -3,16 +3,12 @@ package entities;
 public class Track {
 
     private int distance, order;
-    private Product product;
-    private City city;
-    private Orientation orientation;
+    private Plant plant;
 
 
-    public Track(int length, Product product, City city, Orientation orientation, int order){
+    public Track(int length, Plant plant, int order){
         distance = length*150;
-        this.product = product;
-        this.city = city;
-        this.orientation = orientation;
+        this.plant = plant;
         this.order = order;
     }
 
@@ -20,8 +16,12 @@ public class Track {
         return distance;
     }
 
+    public Plant getPlant(){
+        return plant;
+    }
+
     public String getName(){
-        return order+". "+product.toString()+" | "+city.toString()+" | "+ orientation.toString() +" ("+distance+"m)";
+        return order+". "+plant.toString() + "( "+distance+"m)";
     }
 
 }
